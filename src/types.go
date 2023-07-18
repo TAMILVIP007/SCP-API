@@ -1,24 +1,13 @@
 package src
 
+// Envs
+
 type Envs struct {
 	DbUrl     string
 	Token     string
 	Encyptkey string
+	LogChat   int64
 	Port      string
-}
-
-type BannedInfo struct {
-	UserId   string `bson:"_id"`
-	Reason   string `bson:"reason"`
-	BannedBy string `bson:"banned_by"`
-	Date     string `bson:"date"`
-}
-
-type TokensInfo struct {
-	UserId string   `bson:"_id"`
-	Token  string   `bson:"token"`
-	Time   string   `bson:"time"`
-	Rights []string `bson:"rights"`
 }
 
 type IndexResponse struct {
@@ -27,22 +16,48 @@ type IndexResponse struct {
 }
 
 type BanRequest struct {
-	Token    string `json:"token"`
-	ID       string `json:"id"`
-	Reason   string `json:"reason"`
-	BannedBy string `json:"bannedBy"`
+	Token        string `json:"token"`
+	UserId       string `json:"user_id"`
+	Reason       string `json:"reason"`
+	From         string `json:"from"`
+	BanClass     string `json:"ban_class"`
+	EvidenceLink string `json:"evidence_link,omitempty"`
+	Notes        string `json:"notes,omitempty"`
 }
 
-type BanResponse struct {
+type UnbanRequest struct {
+	Token  string `json:"token"`
+	UserId string `json:"user_id"`
+	Reason string `json:"reason"`
+	From   string `json:"from"`
+}
+
+type GeneralResponse struct {
 	Message string `json:"message"`
+	Success bool   `json:"success"`
 }
 
 type TokenRequest struct {
-	ID     string `json:"id"`
-	Rights string `json:"rights"`
+	UserID string `json:"user_id"`
+	Token  string `json:"token"`
+	Role   string `json:"role"`
 }
 
 type TokenResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
+}
+
+type BannedInfo struct {
+	BanRequest
+	TimeStamp string `bson:"date"`
+	BanId     string `bson:"ban_id"`
+}
+
+type TokensInfo struct {
+	UserId     string `bson:"_id"`
+	Token      string `bson:"token"`
+	Time       string `bson:"time"`
+	Role       string `bson:"role"`
+	AssignedBy string `bson:"assigned_by"`
 }

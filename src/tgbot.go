@@ -11,8 +11,11 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 )
 
+var bot *gotgbot.Bot
+
 func init() {
-	b, err := gotgbot.NewBot(Envars.Token, &gotgbot.BotOpts{
+	var err error
+	bot, err = gotgbot.NewBot(Envars.Token, &gotgbot.BotOpts{
 		Client: http.Client{},
 		DefaultRequestOpts: &gotgbot.RequestOpts{
 			Timeout: gotgbot.DefaultTimeout,
@@ -33,7 +36,7 @@ func init() {
 	})
 	dispatcher := updater.Dispatcher
 	dispatcher.AddHandler(handlers.NewCommand("start", start))
-	err = updater.StartPolling(b, &ext.PollingOpts{
+	err = updater.StartPolling(bot, &ext.PollingOpts{
 		DropPendingUpdates: true,
 		GetUpdatesOpts: gotgbot.GetUpdatesOpts{
 			Timeout: 9,
@@ -45,7 +48,7 @@ func init() {
 	if err != nil {
 		panic("failed to start polling: " + err.Error())
 	}
-	log.Printf("%s has been started...\n", b.User.Username)
+	log.Printf("%s has been started...\n", bot.User.Username)
 }
 
 func start(b *gotgbot.Bot, ctx *ext.Context) error {
@@ -56,4 +59,44 @@ func start(b *gotgbot.Bot, ctx *ext.Context) error {
 		return fmt.Errorf("failed to send start message: %w", err)
 	}
 	return nil
+}
+
+func SendRequest(request interface{}) bool {
+	var msgtosend string
+	switch req := request.(type) {
+	case *BanRequest:
+		msgtosend += "<b>New Ban Request</b>\n"
+		msgtosend += fmt.Sprintf("<b>User ID:</b> %s\n", req.UserId)
+		msgtosend += fmt.Sprintf("<b>Reason:</b> %s\n", req.Reason)
+		msgtosend += fmt.Sprintf("<b>Requested By:</b> %s\n", req.From)
+		msgtosend += fmt.Sprintf("<b>Ban Class:</b> %s\n", req.BanClass)
+		msgtosend += fmt.Sprintf("<b>Note:</b> %s\n", req.Notes)
+		msgtosend += fmt.Sprintf("<b>Proof:</b> %s\n", req.EvidenceLink)
+	case *UnbanRequest:
+		msgtosend += "<b>New Unban Request</b>\n"
+		msgtosend += fmt.Sprintf("<b>User ID:</b> %s\n", req.UserId)
+		msgtosend += fmt.Sprintf("<b>Reason:</b> %s\n", req.Reason)
+		msgtosend += fmt.Sprintf("<b>Requested By:</b> %s\n", req.From)
+	default:
+		return false
+	}
+
+	_, err := bot.SendMessage(Envars.LogChat, msgtosend, &gotgbot.SendMessageOpts{
+		ParseMode: "html",
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+				{
+					{
+						Text:         "Approve",
+						CallbackData: "approve",
+					},
+					{
+						Text:         "Deny",
+						CallbackData: "deny",
+					},
+				},
+			},
+		},
+	})
+	return err == nil
 }

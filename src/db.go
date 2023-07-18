@@ -28,7 +28,9 @@ func init() {
 }
 
 func AddNewBan(u *BannedInfo) error {
-	_, err := bannedinfo.UpdateOne(context.Background(), u, options.Update().SetUpsert(true))
+	filter := bson.M{"user_id": u.UserId}
+	update := bson.M{"$set": u}
+	_, err := bannedinfo.UpdateOne(context.Background(), filter, update, options.Update().SetUpsert(true))
 	return err
 }
 
@@ -39,7 +41,7 @@ func CheckBan(u *BannedInfo) bool {
 
 func GetBanReason(userid string) string {
 	var u BannedInfo
-	err := bannedinfo.FindOne(context.Background(), bson.M{"_id": u.UserId}).Decode(&u)
+	err := bannedinfo.FindOne(context.Background(), bson.M{"user_id": userid}).Decode(&u)
 	if err != nil {
 		return ""
 	}
@@ -47,18 +49,22 @@ func GetBanReason(userid string) string {
 }
 
 func AddNewToken(u *TokensInfo) error {
-	_, err := tokensinfo.UpdateOne(context.Background(), u, options.Update().SetUpsert(true))
+	filter := bson.M{"user_id": u.UserId}
+	update := bson.M{"$set": u}
+	_, err := tokensinfo.UpdateOne(context.Background(), filter, update, options.Update().SetUpsert(true))
 	return err
 }
 
-func CheckBanToken(token string) bool {
+func FetchTokenRole(token string) *TokensInfo {
 	var u TokensInfo
 	err := tokensinfo.FindOne(context.Background(), bson.M{"token": token}).Decode(&u)
 	if err != nil {
-		return false
+		return nil
 	}
-	if !MatchKey("ban", u.Rights) {
-		return false
-	}
-	return true
+	return &u
+}
+
+func RemoveBanById(userid string) error {
+	_, err := bannedinfo.DeleteOne(context.Background(), bson.M{"user_id": userid})
+	return err
 }

@@ -3,7 +3,9 @@ package src
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/base64"
 	"fmt"
+	"time"
 )
 
 func encryptAES(plaintext string) string {
@@ -41,5 +43,9 @@ func MatchKey(key string, rights []string) bool {
 }
 
 func GenToken(userID string, role string) string {
-	return encryptAES(userID + ":" + role)
+	return base64.StdEncoding.EncodeToString([]byte(encryptAES(userID + ":" + role)))
+}
+
+func GenBanId(userId string, by string) string {
+	return base64.StdEncoding.EncodeToString([]byte(encryptAES(userId + "+" + by + "+" + time.Now().Format("2006-01-02 15:04:05"))))
 }

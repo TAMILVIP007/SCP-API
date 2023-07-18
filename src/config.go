@@ -17,6 +17,7 @@ func init() {
 	Envars = Envs{
 		Token:     os.Getenv("TOKEN"),
 		DbUrl:     os.Getenv("DB_URL"),
+		LogChat:   ConverttoInt64(os.Getenv("LOG_CHAT")),
 		Encyptkey: os.Getenv("ENCRYPT_KEY"),
 		Port:      os.Getenv("PORT"),
 	}
@@ -37,6 +38,14 @@ func ConverttoFloat64(s string) float64 {
 	i, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0.0
+	}
+	return i
+}
+
+func ConverttoInt64(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0
 	}
 	return i
 }
